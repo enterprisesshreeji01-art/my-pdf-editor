@@ -131,4 +131,45 @@ document.getElementById("files").addEventListener("change",async e=>{
 });
 </script>
 </body>
+<section id="edit-pdf" style="padding:20px;text-align:center;">
+  <h2>Edit PDF</h2>
+  <p>Upload your PDF and start editing.</p>
+
+  <input type="file" id="pdfFile" accept="application/pdf">
+
+  <div style="margin-top:20px;">
+    <button onclick="addText()">Add Text</button>
+    <button onclick="addImage()">Add Image</button>
+    <button onclick="rotatePDF()">Rotate PDF</button>
+    <button onclick="downloadPDF()">Download PDF</button>
+  </div>
+
+  <p id="status">Please select a PDF file.</p>
+</section>
+
+<script>
+let selectedPDF = null;
+
+document.getElementById("pdfFile").addEventListener("change", function(e) {
+  selectedPDF = e.target.files[0];
+  document.getElementById("status").innerText =
+    selectedPDF ? "PDF selected: " + selectedPDF.name : "No PDF selected";
+});
+
+function addText() {
+  alert("PDF text editing feature is being prepared.");
+}
+
+function addImage() {
+  alert("PDF image editing feature is being prepared.");
+}
+
+function rotatePDF() {
+  alert("PDF rotation feature is being prepared.");
+}
+
+function downloadPDF() {
+  alert("PDF download feature is being prepared.");
+}
+</script>
 </html>
