@@ -115,8 +115,8 @@ document.getElementById("files").addEventListener("change",async e=>{
    result=await PDFDocument.load(await f.arrayBuffer());
    result.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+90)%360)));
   }else{
-   throw Error("This tool is coming soon. Merge PDF, JPG to PDF and Rotate PDF are available in this first version.");
-  }
+   return;
+   }
   const bytes=await result.save();
   const blob=new Blob([bytes],{type:"application/pdf"});
   const url=URL.createObjectURL(blob);
