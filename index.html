@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My PDF Editor - Free PDF Tools</title>
+<script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f7f9fc;color:#202b3c}
+header{background:white;padding:18px 7%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee}
+.logo{font-size:24px;font-weight:bold;color:#2365df}
+nav a{margin-left:22px;color:#344054;text-decoration:none}
+.hero{text-align:center;padding:65px 15px 40px;background:white}
+h1{font-size:38px;margin:0 0 14px}
+.hero p{color:#687386;font-size:17px}
+.upload{margin:28px auto;padding:28px;border:2px dashed #3979e8;border-radius:14px;max-width:570px;background:#f5f8ff}
+button{background:#2867df;color:white;border:0;padding:13px 22px;border-radius:8px;cursor:pointer;font-size:15px}
+button:hover{background:#174fb8}
+.tools{max-width:1100px;margin:40px auto;padding:0 20px}
+.tools h2{text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px;margin-top:25px}
+.tool{background:white;padding:25px 15px;border-radius:12px;text-align:center;box-shadow:0 3px 15px #14213d10;cursor:pointer;border:1px solid #edf0f5}
+.tool:hover{border-color:#3979e8;transform:translateY(-3px)}
+.tool .ico{font-size:32px}
+.tool h3{margin:12px 0 7px;font-size:17px}
+.tool p{font-size:13px;color:#778195}
+#status{text-align:center;margin:20px;color:#2365df}
+footer{text-align:center;padding:30px;color:#7b8494}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">📄 My PDF Editor</div>
+<nav><a href="#">Home</a><a href="#tools">PDF Tools</a></nav>
+</header>
+
+<section class="hero">
+<h1>All Your PDF Tools in One Place</h1>
+<p>Edit, convert, merge and manage PDF files easily.</p>
+<div class="upload">
+<h3>Select your PDF or image files</h3>
+<input type="file" id="files" multiple accept=".pdf,image/png,image/jpeg">
+<p>Choose files from your device</p>
+<button onclick="document.getElementById('files').click()">Select Files</button>
+</div>
+</section>
+
+<section class="tools" id="tools">
+<h2>All PDF Tools</h2>
+<div class="grid" id="grid"></div>
+</section>
+
+<div id="status">Select a tool to get started.</div>
+<footer>©️ 2026 My PDF Editor | Free PDF Tools</footer>
+
+<script>
+const tools=[
+["🔗","Merge PDF","Combine multiple PDF files","merge"],
+["✂️","Split PDF","Separate PDF pages","split"],
+["📦","Compress PDF","Reduce PDF file size","compress"],
+["📝","Edit PDF","Edit PDF documents","edit"],
+["🖼️","JPG to PDF","Convert images into PDF","image"],
+["🔄","Rotate PDF","Rotate PDF pages","rotate"],
+["📄","PDF to Word","Convert PDF to Word","word"],
+["✍️","Sign PDF","Add your signature","sign"],
+["🗑️","Delete Pages","Remove PDF pages","delete"]
+];
+
+let selected="";
+const grid=document.getElementById("grid");
+tools.forEach(t=>{
+ const div=document.createElement("div");
+ div.className="tool";
+ div.innerHTML=`<div class="ico">${t[0]}</div><h3>${t[1]}</h3><p>${t[2]}</p>`;
+ div.onclick=()=>choose(t[3],t[1]);
+ grid.appendChild(div);
+});
+
+function choose(tool,name){
+ selected=tool;
+ document.getElementById("status").innerText=
+ name+" selected. Now choose your files above.";
+ document.getElementById("files").click();
+}
+
+document.getElementById("files").addEventListener("change",async e=>{
+ const files=Array.from(e.target.files);
+ if(!files.length)return;
+ try{
+  const {PDFDocument,degrees}=PDFLib;
+  let result;
+  if(selected==="merge"){
+   const pdfs=files.filter(f=>f.type==="application/pdf");
+   if(pdfs.length<2)throw Error("Please select at least 2 PDF files.");
+   result=await PDFDocument.create();
+   for(const file of pdfs){
+    const pdf=await PDFDocument.load(await file.arrayBuffer());
+    const pages=await result.copyPages(pdf,pdf.getPageIndices());
+    pages.forEach(p=>result.addPage(p));
+   }
+  }else if(selected==="image"){
+   const imgs=files.filter(f=>f.type.startsWith("image/"));
+   if(!imgs.length)throw Error("Please select JPG or PNG images.");
+   result=await PDFDocument.create();
+   for(const f of imgs){
+    const bytes=await f.arrayBuffer();
+    const img=f.type==="image/png"?await result.embedPng(bytes):await result.embedJpg(bytes);
+    const page=result.addPage([img.width,img.height]);
+    page.drawImage(img,{x:0,y:0,width:img.width,height:img.height});
+   }
+  }else if(selected==="rotate"){
+   const f=files.find(f=>f.type==="application/pdf");
+   if(!f)throw Error("Please select a PDF file.");
+   result=await PDFDocument.load(await f.arrayBuffer());
+   result.getPages().forEach(p=>p.setRotation(degrees((p.getRotation().angle+90)%360)));
+  }else{
+   throw Error("This tool is coming soon. Merge PDF, JPG to PDF and Rotate PDF are available in this first version.");
+  }
+  const bytes=await result.save();
+  const blob=new Blob([bytes],{type:"application/pdf"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;a.download="my-pdf-editor-result.pdf";a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById("status").innerText="Done! Your PDF has been downloaded.";
+ }catch(err){
+  document.getElementById("status").innerText=err.message;
+ }
+ e.target.value="";
+});
+</script>
+</body>
+</html>
